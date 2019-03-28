@@ -1,5 +1,5 @@
 #include <fstream>
-#include <iostream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -10,6 +10,12 @@ using int64 = long long;
 
 const int64 MIN_INT_64 = -9223372036854775807LL; 
 
+struct Variable {
+	bool value;
+	std::vector<uint32> equal_to;
+	std::vector<uint32> not_equal_to;
+};
+
 int main() {
 	std::ifstream input("equal-not-equal.in");
 	std::ofstream output("equal-not-equal.out");
@@ -17,50 +23,38 @@ int main() {
 	uint32 variables_amount;
 	uint32 constraints_amount;
 	input >> variables_amount >> constraints_amount;
-	std::vector<bool> x(variables_amount + 1, false);
-	std::vector<bool> not_x(variables_amount + 1, false);
+	std::vector<Variable> variables(variables_amount + 1);
+	std::vector<uint32> priorities(variables_amount + 1, -1);
+	uint32 max_priority = 0;
 	std::string expression;
 	uint32 x_i;
 	uint32 x_j;
 	std::string sign;
 	std::string result = "Yes";
+	input >> expression;
+	x_i = std::stoi(expression.substr(1));
+	input >> sign;
+	input >> expression;
+	x_j = std::stoi(expression.substr(1));
+	priorities[max_priority++] = x_i;
+	if(x_i != x_j) {
+		priorities[max_priority++] = x_j; 
+	}
+	if(sign == "==") {
+		variables[x_i].equal_to.push_back(x_j);
+	} else {
+		variables[x_i].not_equal_to.push_back(x_j);
+	}
 	for(uint32 i = 0; i < constraints_amount; ++i) {
 		input >> expression;
 		x_i = std::stoi(expression.substr(1));
 		input >> sign;
 		input >> expression;
 		x_j = std::stoi(expression.substr(1));
-		if((!x[x_i] && !not_x[x_i] && !x[x_j] && !not_x[x_j])) {
-			x[x_i] = true;
-			if(sign == "==") {
-				x[x_j] = true;
-			} else {
-				not_x[x_j] = true;
-			}
-		} else if(x[x_i]) {
-			if(sign == "==") {
-				x[x_j] = true;
-			} else {
-				not_x[x_j] = true;
-			}
-		} else if(x[x_j]) {
-			if(sign == "==") {
-				x[x_i] = true;
-			} else {
-				not_x[x_i] = true;
-			}
-		} else if(not_x[x_i]) {
-			if(sign == "==") {
-				not_x[x_j] = true;
-			} else {
-				x[x_j] = true;
-			}
+		if(sign == "==") {
+			variables[x_i].equal_to.push(x_j);  
 		} else {
-			if(sign == "==") {
-				not_x[x_i] = true;
-			} else {
-				x[x_i] = true;
-			}
+			variables[x_i].not_equal_to.push(x_j);
 		}
 	}
 
